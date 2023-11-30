@@ -4,7 +4,6 @@ import { MongoClient } from "mongodb";
 
 var db;
 
-// Connection URL (MongoDB Atlas) .env 파일 CLOUD_DB 값 이용
 var url;
 if (process.env.NODE_ENV === "production") {
   url = process.env.CLOUD_DB;
