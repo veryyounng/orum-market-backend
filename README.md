@@ -13,6 +13,9 @@ npm i
 
 // 서버 실행
 npm run start
+
+// 초기 db 파일 적용
+npm run dbinit
 ```
 
 - Node JS
