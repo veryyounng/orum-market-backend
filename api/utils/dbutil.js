@@ -8,7 +8,8 @@ var url;
 if (process.env.NODE_ENV === "production") {
   url = process.env.CLOUD_DB;
 } else {
-  url = process.env.CLOUD_DB;
+  url =
+    "mongodb+srv://lion:lion@cluster0.vzsl9if.mongodb.net/?retryWrites=true&w=majority";
 }
 
 const client = new MongoClient(url);
