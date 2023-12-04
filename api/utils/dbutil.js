@@ -1,15 +1,15 @@
-import logger from "./logger.js";
-import { db as DBConfig } from "../config/index.js";
-import { MongoClient } from "mongodb";
+import logger from './logger.js';
+import { db as DBConfig } from '../config/index.js';
+import { MongoClient } from 'mongodb';
 
 var db;
 
 var url;
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === 'production') {
   url = process.env.CLOUD_DB;
 } else {
   url =
-    "mongodb+srv://lion:lion@cluster0.vzsl9if.mongodb.net/?retryWrites=true&w=majority";
+    'mongodb+srv://lion:lion@cluster0.vzsl9if.mongodb.net/?retryWrites=true&w=majority';
 }
 
 const client = new MongoClient(url);
@@ -19,13 +19,13 @@ try {
   await client.connect();
   logger.info(`DB 접속 성공: ${url}`);
   db = client.db(DBConfig.database);
-  db.user = db.collection("user");
-  db.product = db.collection("product");
-  db.cart = db.collection("cart");
-  db.order = db.collection("order");
-  db.reply = db.collection("reply");
-  db.seq = db.collection("seq");
-  db.code = db.collection("code");
+  db.user = db.collection('user');
+  db.product = db.collection('product');
+  db.cart = db.collection('cart');
+  db.order = db.collection('order');
+  db.reply = db.collection('reply');
+  db.seq = db.collection('seq');
+  db.code = db.collection('code');
 } catch (err) {
   logger.error(err);
 }

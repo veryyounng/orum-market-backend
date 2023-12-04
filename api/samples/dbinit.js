@@ -37,21 +37,29 @@ async function initDB() {
   await registProduct();
   console.info('3. 상품 등록 완료.');
 
-  // // 장바구니 등록
+  // 장바구니 등록
   await registCart();
   console.info('4. 장바구니 등록 완료.');
 
-  // // 구매 등록
+  // 구매 등록
   await registOrder();
   console.info('5. 구매 등록 완료.');
 
-  // // 후기 등록
+  // 후기 등록
   await registReply();
   console.info('6. 후기 등록 완료.');
 
-  // // 코드 등록
+  // 코드 등록
   await registCode();
   console.info('7. 코드 등록 완료.');
+
+  // 북마크 등록
+  await registBookmark();
+  console.info('8. 북마크 등록 완료.');
+
+  // config
+  await registConfig();
+  console.info('9. config 등록 완료.');
 
   // 상품 조회
   await productList();
@@ -69,7 +77,7 @@ function getTime(day = 0, second = 0) {
 
 // 시퀀스 등록
 async function registSeq() {
-  const seqList = ['user', 'product', 'cart', 'order', 'reply'];
+  const seqList = ['user', 'product', 'cart', 'order', 'reply', 'bookmark'];
   const data = seqList.map((_id) => ({ _id, no: 1 }));
   await db.seq.insertMany(data);
 }
@@ -89,7 +97,7 @@ async function registUser() {
       updatedAt: getTime(-100, -60 * 60 * 3),
       extra: {
         birthday: '03-23',
-        level: 'UL03',
+        membershipClass: 'MC03',
         addressBook: [
           {
             id: 1,
@@ -116,7 +124,7 @@ async function registUser() {
       updatedAt: getTime(-30, -60 * 60 * 3),
       extra: {
         birthday: '11-23',
-        level: 'UL01',
+        membershipClass: 'MC01',
         addressBook: [
           {
             id: 1,
@@ -142,8 +150,9 @@ async function registUser() {
       createdAt: getTime(-40, -60 * 30),
       updatedAt: getTime(-30, -60 * 20),
       extra: {
+        confirm: false, // 관리자 승인이 안됨
         birthday: '11-24',
-        level: 'UL02',
+        membershipClass: 'MC02',
         addressBook: [
           {
             id: 1,
@@ -170,7 +179,7 @@ async function registUser() {
       updatedAt: getTime(-10, -60 * 60 * 12),
       extra: {
         birthday: '11-30',
-        level: 'UL01',
+        membershipClass: 'MC02',
         address: [
           {
             id: 1,
@@ -192,393 +201,6 @@ async function registUser() {
 
 // 상품 등록
 async function registProduct() {
-  // var data = [
-  //   {
-  //     _id: await nextSeq('product'),
-  //     seller_id: 2,
-  //     price: 22800,
-  //     shippingFees: 0,
-  //     show: true,
-  //     active: true,
-  //     name: '캥거루 스턴트 독 로봇완구',
-  //     quantity: 320,
-  //     buyQuantity: 310,
-  //     mainImages: [
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-dog.jpg`,
-  //     ],
-  //     content: `
-  //       <div class="product-detail">
-  //         <p>캥거루 스턴트 독 로봇완구 상세 설명</p>
-  //       </div>`,
-  //     createdAt: getTime(-41, -60 * 60 * 2),
-  //     updatedAt: getTime(-40, -60 * 15),
-  //     extra: {
-  //       isNew: true,
-  //       isBest: true,
-  //       category: ['PC03', 'PC0301'],
-  //       sort: 5,
-  //     },
-  //   },
-  //   {
-  //     _id: await nextSeq('product'),
-  //     seller_id: 2,
-  //     price: 17260,
-  //     shippingFees: 2500,
-  //     show: true,
-  //     active: true,
-  //     name: '헬로카봇 스톰다이버',
-  //     quantity: 200,
-  //     buyQuantity: 198,
-  //     mainImages: [
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-diver.jpg`,
-  //     ],
-  //     content: `
-  //       <div class="product-detail">
-  //         <p>헬로카봇 스톰다이버 상세 설명</p>
-  //       </div>`,
-  //     createdAt: getTime(-38, -60 * 60 * 6),
-  //     updatedAt: getTime(-33, -60 * 55),
-  //     extra: {
-  //       isNew: false,
-  //       isBest: true,
-  //       category: ['PC01', 'PC0103'],
-  //       sort: 4,
-  //     },
-  //   },
-  //   {
-  //     _id: await nextSeq('product'),
-  //     seller_id: 2,
-  //     price: 48870,
-  //     shippingFees: 0,
-  //     show: true,
-  //     active: true,
-  //     name: '레고 클래식 라지 조립 박스 10698',
-  //     quantity: 100,
-  //     buyQuantity: 99,
-  //     mainImages: [
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-classic.jpg`,
-  //     ],
-  //     content: `
-  //       <div class="product-detail">
-  //         <p>레고 클래식 라지 조립 박스 10698 상세 설명</p>
-  //       </div>`,
-  //     createdAt: getTime(-35, -60 * 60 * 6),
-  //     updatedAt: getTime(-10, -60 * 19),
-  //     extra: {
-  //       isNew: true,
-  //       isBest: true,
-  //       category: ['PC01', 'PC0103'],
-  //       sort: 3,
-  //     },
-  //   },
-  //   {
-  //     _id: await nextSeq('product'),
-  //     seller_id: 3,
-  //     price: 45000,
-  //     shippingFees: 3500,
-  //     show: true,
-  //     active: true,
-  //     name: '레고 테크닉 42151 부가티 볼리드',
-  //     quantity: 100,
-  //     buyQuantity: 89,
-  //     mainImages: [
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-bugatti.png`,
-  //     ],
-  //     content: `
-  //       <div class="product-detail">
-  //         <p>레고 테크닉 42151 부가티 볼리드 상세 설명</p>
-  //       </div>`,
-  //     createdAt: getTime(-33, -60 * 60 * 7),
-  //     updatedAt: getTime(-22, -60 * 60 * 3),
-  //     extra: {
-  //       isNew: false,
-  //       isBest: true,
-  //       category: ['PC03', 'PC0303'],
-  //       sort: 1,
-  //     },
-  //   },
-  //   {
-  //     _id: await nextSeq('product'),
-  //     seller_id: 2,
-  //     price: 45000,
-  //     shippingFees: 3500,
-  //     show: true,
-  //     active: true,
-  //     name: '레고 마인크래프트 21246 깊고 어두운 전장',
-  //     quantity: 100,
-  //     buyQuantity: 98,
-  //     mainImages: [
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-minecraft.png`,
-  //     ],
-  //     content: `
-  //       <div class="product-detail">
-  //         <p>레고 마인크래프트 21246 깊고 어두운 전장 상세 설명</p>
-  //       </div>`,
-  //     createdAt: getTime(-30, -60 * 60 * 10),
-  //     updatedAt: getTime(-10, -60 * 56),
-  //     extra: {
-  //       isNew: true,
-  //       isBest: false,
-  //       today: true,
-  //       category: ['PC03', 'PC0303'],
-  //       sort: 2,
-  //     },
-  //   },
-  //   {
-  //     _id: await nextSeq('product'),
-  //     seller_id: 2,
-  //     price: 54790,
-  //     shippingFees: 4000,
-  //     show: false,
-  //     active: true,
-  //     name: '레고 마블 76247 헐크버스터: 와칸다의 전투',
-  //     quantity: 100,
-  //     buyQuantity: 99,
-  //     mainImages: [
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-hulk.png`,
-  //     ],
-  //     content: `
-  //       <div class="product-detail">
-  //         <p>레고 마블 76247 헐크버스터: 와칸다의 전투 상세 설명</p>
-  //       </div>`,
-  //     createdAt: getTime(-30, -60 * 60 * 21),
-  //     updatedAt: getTime(-20, -60 * 10),
-  //     extra: {
-  //       isNew: false,
-  //       isBest: false,
-  //       category: ['PC03', 'PC0303'],
-  //       sort: 1,
-  //     },
-  //   },
-  //   {
-  //     _id: await nextSeq('product'),
-  //     seller_id: 3,
-  //     price: 13000,
-  //     shippingFees: 3500,
-  //     show: true,
-  //     active: true,
-  //     name: '할리갈리 보드게임',
-  //     quantity: 100,
-  //     buyQuantity: 98,
-  //     mainImages: [
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-halligalli.jpg`,
-  //     ],
-  //     content: `
-  //       <div class="product-detail">
-  //         <p>할리갈리 보드게임 상세 설명</p>
-  //       </div>`,
-  //     createdAt: getTime(-25, -60 * 60 * 12),
-  //     updatedAt: getTime(-24, -60 * 23),
-  //     extra: {
-  //       isNew: false,
-  //       isBest: true,
-  //       category: ['PC01', 'PC0102'],
-  //       sort: 3,
-  //     },
-  //   },
-  //   {
-  //     _id: await nextSeq('product'),
-  //     seller_id: 2,
-  //     price: 26000,
-  //     shippingFees: 3000,
-  //     show: true,
-  //     active: true,
-  //     name: '루미큐브 클래식',
-  //     quantity: 100,
-  //     buyQuantity: 97,
-  //     mainImages: [
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-rummikub.png`,
-  //     ],
-  //     content: `
-  //       <div class="product-detail">
-  //         <p>루미큐브 클래식 상세 설명</p>
-  //       </div>`,
-  //     createdAt: getTime(-22, -60 * 60 * 22),
-  //     updatedAt: getTime(-20, -60 * 33),
-  //     extra: {
-  //       isNew: true,
-  //       isBest: true,
-  //       category: ['PC01', 'PC0102'],
-  //       sort: 8,
-  //     },
-  //   },
-  //   {
-  //     _id: await nextSeq('product'),
-  //     seller_id: 3,
-  //     price: 12000,
-  //     shippingFees: 3000,
-  //     show: true,
-  //     active: true,
-  //     name: '짱구는 못말려 숲속 산책 직소퍼즐',
-  //     quantity: 100,
-  //     buyQuantity: 96,
-  //     mainImages: [
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-jjangu.jpg`,
-  //     ],
-  //     content: `
-  //       <div class="product-detail">
-  //         <p>짱구는 못말려 숲속 산책 직소퍼즐 상세 설명</p>
-  //       </div>`,
-  //     createdAt: getTime(-21, -60 * 60 * 4),
-  //     updatedAt: getTime(-16, -60 * 15),
-  //     extra: {
-  //       isNew: true,
-  //       isBest: false,
-  //       today: true,
-  //       category: ['PC03', 'PC0302'],
-  //       sort: 2,
-  //     },
-  //   },
-  //   {
-  //     _id: await nextSeq('product'),
-  //     seller_id: 3,
-  //     price: 24000,
-  //     shippingFees: 0,
-  //     show: true,
-  //     active: true,
-  //     name: '라푼젤 그녀의 꿈 직소퍼즐 KD-1000-001 + 그림 엽서(랜덤) + 품질보증서',
-  //     quantity: 100,
-  //     buyQuantity: 95,
-  //     mainImages: [
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-rapunzel.jpg`,
-  //     ],
-  //     content: `
-  //       <div class="product-detail">
-  //         <p>라푼젤 그녀의 꿈 직소퍼즐 KD-1000-001 + 그림 엽서(랜덤) + 품질보증서 상세 설명</p>
-  //       </div>`,
-  //     createdAt: getTime(-18, -60 * 60 * 7),
-  //     updatedAt: getTime(-12, -60 * 33),
-  //     extra: {
-  //       isNew: false,
-  //       isBest: true,
-  //       category: ['PC01', 'PC0101'],
-  //       sort: 4,
-  //     },
-  //   },
-  //   {
-  //     _id: await nextSeq('product'),
-  //     seller_id: 2,
-  //     price: 14400,
-  //     shippingFees: 3000,
-  //     show: true,
-  //     active: true,
-  //     name: 'KC인증 스키비디 토일렛 피규어 블럭 8종 중국 호환 레고 블록 장난감 어린이 선물',
-  //     quantity: 100,
-  //     buyQuantity: 94,
-  //     mainImages: [
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-skibidi01.jpg`,
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-skibidi02.jpg`,
-  //     ],
-  //     content: `
-  //       <div align="center"><p>*크리스마스 배송 안내</p></div>
-  //       <div align="center"><p>택배사 물량 증가로 평소보다 2~3일 더 걸립니다.</p></div>
-  //       <div align="center"><br></div>
-  //       <div align="center"><img src="${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-skibidi03.jpg"></div>
-  //       <div align="center"><br></div>
-  //       <div align="center"><img src="${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-skibidi04.jpg"></div>
-  //       <div align="center"><br></div>
-  //       <div align="center"><p>*반품 안내</p></div>`,
-  //     createdAt: getTime(-16, -60 * 60 * 3),
-  //     updatedAt: getTime(-15, -60 * 45),
-  //     extra: {
-  //       isNew: false,
-  //       isBest: false,
-  //       today: true,
-  //       category: ['PC01', 'PC0103'],
-  //       sort: 6,
-  //     },
-  //   },
-  //   {
-  //     _id: await nextSeq('product'),
-  //     seller_id: 2,
-  //     price: 9000,
-  //     shippingFees: 3000,
-  //     show: true,
-  //     active: true,
-  //     name: '스키비디 토일렛 봉제 인형 (25cm-30cm) 시리즈 크리스마스 선물',
-  //     quantity: 999,
-  //     buyQuantity: 800,
-  //     mainImages: [
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-skibidi11.jpg`,
-  //     ],
-  //     content: `
-  //       <div align="center"><img src="${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-skibidi12.jpg"></div>
-  //       <div align="center"><br></div>
-  //       <div align="center"><img src="${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-skibidi13.jpg"></div>
-  //       <div align="center"><br></div>
-  //       <div align="center"><img src="${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-skibidi14.jpg"></div>
-  //       <div align="center"><br></div>
-  //       <div align="center"><img src="${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-skibidi15.jpg"></div>`,
-  //     createdAt: getTime(-11, -60 * 60 * 12),
-  //     updatedAt: getTime(-5, -60 * 60 * 6),
-  //     extra: {
-  //       isNew: true,
-  //       isBest: true,
-  //       category: ['PC01', 'PC0103'],
-  //       sort: 7,
-  //     },
-  //   },
-  //   {
-  //     _id: await nextSeq('product'),
-  //     seller_id: 3,
-  //     price: 21600,
-  //     shippingFees: 3500,
-  //     show: true,
-  //     active: true,
-  //     name: 'KC인증 스키비디 토일렛 피규어 블럭 4종 중국 호환 레고 블록 장난감 어린이 선물',
-  //     quantity: 99,
-  //     buyQuantity: 94,
-  //     mainImages: [
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-skibidi21.jpg`,
-  //     ],
-  //     content: `
-  //       <div align="center"><img src="${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-skibidi22.jpg"></div>
-  //       <div align="center"><br></div>
-  //       <div align="center"><img src="${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-skibidi23.jpg"></div>
-  //       <div align="center"><br></div>
-  //       <div align="center"><img src="${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-skibidi24.jpg"></div>`,
-  //     createdAt: getTime(-10, -60 * 60 * 12),
-  //     updatedAt: getTime(-5, -60 * 60 * 6),
-  //     extra: {
-  //       isNew: true,
-  //       isBest: false,
-  //       category: ['PC01', 'PC0103'], // 어린이 > 레고
-  //       sort: 6,
-  //     },
-  //   },
-  //   {
-  //     _id: await nextSeq('product'),
-  //     seller_id: 3,
-  //     price: 12900,
-  //     shippingFees: 3500,
-  //     show: true,
-  //     active: true,
-  //     name: '푸쉬팝게임기 팝잇 푸시팝 게임기 두더지게임 핑거 뽁뽁이 애니멀 1+1',
-  //     quantity: 300,
-  //     buyQuantity: 298,
-  //     mainImages: [
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-pushpop01.jpg`,
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-pushpop02.jpg`,
-  //       `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-pushpop03.jpg`,
-  //     ],
-  //     content: `
-  //       <div align="center"><p>푸쉬팝게임기 팝잇 푸시팝 게임기 두더지게임 핑거 뽁뽁이 애니멀을 구매하시는 모든 분께 사은품(무작위)으로 하나 더 드립니다.</p></div>
-  //       <div align="center"><img src="${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-pushpop04.gif"></div>
-  //       <div align="center"><br></div>
-  //       <div align="center"><img src="${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-pushpop05.jpg"></div>
-  //       <div align="center"><br></div>
-  //       <div align="center"><img src="${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-pushpop06.jpg"></div>`,
-  //     createdAt: getTime(-3, -60 * 60 * 12),
-  //     updatedAt: getTime(-3, -60 * 60 * 12),
-  //     extra: {
-  //       isNew: false,
-  //       isBest: true,
-  //       category: ['PC01', 'PC0102'], // 어린이 > 보드게임
-  //       sort: 5,
-  //     },
-  //   },
-  // ];
-
   const categories = [
     { code: 'H0101', name: 'tops' },
     { code: 'H0102', name: 'bottoms' },
@@ -694,7 +316,7 @@ async function registCart() {
       _id: await nextSeq('cart'),
       user_id: 4,
       product_id: 1,
-      count: 2,
+      quantity: 2,
       createdAt: getTime(-7, -60 * 30),
       updatedAt: getTime(-7, -60 * 30),
     },
@@ -702,7 +324,7 @@ async function registCart() {
       _id: await nextSeq('cart'),
       user_id: 4,
       product_id: 2,
-      count: 1,
+      quantity: 1,
       createdAt: getTime(-4, -60 * 30),
       updatedAt: getTime(-3, -60 * 60 * 12),
     },
@@ -710,7 +332,7 @@ async function registCart() {
       _id: await nextSeq('cart'),
       user_id: 2,
       product_id: 3,
-      count: 2,
+      quantity: 2,
       createdAt: getTime(-3, -60 * 60 * 4),
       updatedAt: getTime(-3, -60 * 60 * 4),
     },
@@ -718,7 +340,7 @@ async function registCart() {
       _id: await nextSeq('cart'),
       user_id: 2,
       product_id: 4,
-      count: 3,
+      quantity: 3,
       createdAt: getTime(-2, -60 * 60 * 12),
       updatedAt: getTime(-1, -60 * 60 * 20),
     },
@@ -747,6 +369,10 @@ async function registOrder() {
       cost: {
         products: 34520,
         shippingFees: 2500,
+        discount: {
+          products: 0,
+          shippingFees: 0,
+        },
         total: 37020,
       },
       address: {
@@ -758,8 +384,13 @@ async function registOrder() {
     },
     {
       _id: await nextSeq('order'),
-      user_id: 2,
-      state: 'OS040',
+      user_id: 4,
+      state: 'OS035',
+      delivery: {
+        company: '한진 택배',
+        trackingNumber: '364495958003',
+        url: 'https://trace.cjlogistics.com/next/tracking.html?wblNo=364495958003',
+      },
       products: [
         {
           _id: 3,
@@ -780,7 +411,11 @@ async function registOrder() {
       cost: {
         products: 138840,
         shippingFees: 3500,
-        total: 142370,
+        discount: {
+          products: 13880,
+          shippingFees: 3500,
+        },
+        total: 124960,
       },
       address: {
         name: '집',
@@ -806,7 +441,11 @@ async function registOrder() {
       cost: {
         products: 45000,
         shippingFees: 3500,
-        total: 48500,
+        discount: {
+          products: 4500,
+          shippingFees: 0,
+        },
+        total: 44000,
       },
       address: {
         name: '학교',
@@ -881,6 +520,20 @@ async function registCode() {
         },
         {
           sort: 2,
+          code: 'PC010201',
+          value: '2인용',
+          parent: 'PC0102',
+          depth: 3,
+        },
+        {
+          sort: 1,
+          code: 'PC010202',
+          value: '3~4인용',
+          parent: 'PC0102',
+          depth: 3,
+        },
+        {
+          sort: 2,
           code: 'PC0103',
           value: '레고',
           parent: 'PC01',
@@ -926,7 +579,6 @@ async function registCode() {
           sort: 3,
           code: 'PC03',
           value: '어른',
-          parent: 'PC03',
           depth: 1,
         },
         {
@@ -973,58 +625,140 @@ async function registCode() {
         },
         {
           sort: 4,
+          code: 'OS035',
+          value: '배송중',
+        },
+        {
+          sort: 5,
           code: 'OS040',
           value: '배송 완료',
         },
         {
-          sort: 5,
+          sort: 6,
           code: 'OS110',
           value: '반품 요청',
         },
         {
-          sort: 6,
+          sort: 7,
           code: 'OS120',
           value: '반품 처리중',
         },
         {
-          sort: 7,
+          sort: 8,
           code: 'OS130',
           value: '반품 완료',
         },
         {
-          sort: 8,
+          sort: 9,
           code: 'OS210',
           value: '교환 요청',
         },
         {
-          sort: 9,
+          sort: 10,
           code: 'OS220',
           value: '교환 처리중',
         },
         {
-          sort: 10,
+          sort: 11,
           code: 'OS230',
           value: '교환 완료',
         },
         {
-          sort: 11,
+          sort: 12,
           code: 'OS310',
           value: '환불 요청',
         },
         {
-          sort: 12,
+          sort: 13,
           code: 'OS320',
           value: '환불 처리중',
         },
         {
-          sort: 13,
+          sort: 14,
           code: 'OS330',
           value: '환불 완료',
         },
       ],
     },
+    {
+      _id: 'membershipClass',
+      title: '회원 등급',
+      codes: [
+        {
+          sort: 1,
+          code: 'MC01',
+          value: '일반',
+          discountRate: 0, // 할인율
+        },
+        {
+          sort: 2,
+          code: 'MC02',
+          value: '프리미엄',
+          discountRate: 10,
+        },
+        {
+          sort: 3,
+          code: 'MC03',
+          value: 'VIP',
+          discountRate: 20,
+        },
+      ],
+    },
   ];
   await db.code.insertMany(data);
+}
+
+// 북마크 등록
+async function registBookmark() {
+  var data = [
+    {
+      _id: await nextSeq('bookmark'),
+      user_id: 4,
+      product_id: 2,
+      memo: '첫째 크리스마스 선물.',
+      createdAt: getTime(-3, -60 * 60 * 2),
+    },
+    {
+      _id: await nextSeq('bookmark'),
+      user_id: 4,
+      product_id: 3,
+      memo: '둘째 입학 선물',
+      createdAt: getTime(-2, -60 * 60 * 20),
+    },
+    {
+      _id: await nextSeq('bookmark'),
+      user_id: 4,
+      product_id: 4,
+      memo: '이달 보너스타면 꼭!!!',
+      createdAt: getTime(-1, -60 * 60 * 12),
+    },
+    {
+      _id: await nextSeq('bookmark'),
+      user_id: 2,
+      product_id: 4,
+      memo: '1순위로 살것!',
+      createdAt: getTime(-1, -60 * 60 * 12),
+    },
+  ];
+
+  await db.bookmark.insertMany(data);
+}
+
+// config 등록
+async function registConfig() {
+  var data = [
+    {
+      _id: 'shippingFees',
+      title: '배송비',
+      value: 3500,
+    },
+    {
+      _id: 'freeShippingFees',
+      title: '배송비 무료 금액',
+      value: 50000,
+    },
+  ];
+  await db.config.insertMany(data);
 }
 
 // 모든 상품명을 출력한다.

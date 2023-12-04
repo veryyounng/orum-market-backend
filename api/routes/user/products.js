@@ -156,6 +156,14 @@ router.get('/:_id', async function(req, res, next) {
         }
       }
     }
+    #swagger.responses[404] = {
+      description: '리소스가 존재하지 않음',
+      content: {
+        "application/json": {
+          schema: { $ref: "#/components/schemas/error404" }
+        }
+      }
+    }
     #swagger.responses[500] = {
       description: '서버 에러',
       content: {
@@ -167,9 +175,9 @@ router.get('/:_id', async function(req, res, next) {
   */
 
   try{
-    const result = await model.findById(Number(req.params._id));
-    if(result){
-      res.json({ok: 1, item: result});
+    const item = await model.findById({ _id: Number(req.params._id) });
+    if(item){
+      res.json({ ok: 1, item });
     }else{
       next();
     }
