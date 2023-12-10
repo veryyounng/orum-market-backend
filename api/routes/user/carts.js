@@ -1,9 +1,10 @@
 import express from 'express';
 import { query, body } from 'express-validator';
-
+import createError from 'http-errors';
 import logger from '#utils/logger.js';
 import validator from '#middlewares/validator.js';
 import model from '#models/user/cart.model.js';
+import _ from 'lodash';
 
 const router = express.Router();
 
@@ -11,8 +12,10 @@ const router = express.Router();
 router.get('/', async function(req, res, next) {
   try{
     const user_id = req.user._id;
-    const item = await model.findByUser(user_id);
-    res.json({ok: 1, item});
+    const item = await model.findByUser(user_id, req.body.discount);
+    const cost = item.cost;
+    delete item.cost;
+    res.json({ ok: 1, item, cost });
   }catch(err){
     next(err);
   }
@@ -56,7 +59,23 @@ router.delete('/cleanup', async function(req, res, next) {
   }
 });
 
-// 장바구니 상품 삭제
+// 장바구니 상품 삭제(여러건)
+router.delete('/', async function(req, res, next) {
+  try{
+    const myCarts = await model.findByUser(req.user._id);
+    const isMine = _.every(req.body.carts, _id => _.some(myCarts, cart => _.isEqual(cart._id, _id)));
+    if(req.user.type === 'admin' || isMine){
+      await model.deleteMany(req.body.carts);
+      res.json({ ok: 1 });
+    }else{
+      next(createError(422, `본인의 장바구니 상품만 삭제 가능합니다.`));
+    }
+  }catch(err){
+    next(err);
+  }
+});
+
+// 장바구니 상품 삭제(한건)
 router.delete('/:_id', async function(req, res, next) {
   try{
     const _id = Number(req.params._id);

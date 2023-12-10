@@ -3,11 +3,13 @@ import moment from 'moment';
 import createError from 'http-errors';
 
 import logger from '#utils/logger.js';
-import db, { nextSeq } from '#utils/dbutil.js';
+import db, { nextSeq } from '#utils/dbUtil.js';
 import productModel from '#models/user/product.model.js';
 import replyModel from '#models/user/reply.model.js';
 import userModel from '#models/user/user.model.js';
-import codeutil from '#utils/codeutil.js';
+import cartModel from '#models/user/cart.model.js';
+import codeUtil from '#utils/codeUtil.js';
+import priceUtil from '#utils/priceUtil.js';
 
 const buying = {
   // 주문 등록
@@ -16,7 +18,6 @@ const buying = {
     orderInfo._id = await nextSeq('order');
     orderInfo.updatedAt = orderInfo.createdAt = moment().format('YYYY.MM.DD HH:mm:ss');
 
-    const sellerBaseShippingFees = {};
     const products = [];
 
     for(let {_id, quantity} of orderInfo.products){
@@ -24,16 +25,13 @@ const buying = {
       if(product){
         if(product.quantity-product.buyQuantity >= quantity){
           // 상품의 구매된 수량 수정
-          db.product.updateOne({ _id }, { $set: { buyQuantity: product.buyQuantity+quantity } });
-          const beforeShippingFees = sellerBaseShippingFees[product.seller_id];
-          if(beforeShippingFees === undefined){
-            sellerBaseShippingFees[product.seller_id] = product.shippingFees;
-          }else{
-            sellerBaseShippingFees[product.seller_id] = Math.max(beforeShippingFees, product.shippingFees);
+          if(!orderInfo.dryRun){
+            db.product.updateOne({ _id }, { $set: { buyQuantity: product.buyQuantity+quantity } });
           }
           products.push({
             _id,
             quantity,
+            seller_id: product.seller_id,
             name: product.name,
             image: product.mainImages[0],
             price: product.price * quantity
@@ -47,46 +45,24 @@ const buying = {
     }
 
     orderInfo.products = products;
-
-    // 할인 전 금액
-    const cost = {
-      products: _.sumBy(orderInfo.products, 'price'),
-      shippingFees: _.sum(Object.values(sellerBaseShippingFees)),
-    };
-
-    // 상품 할인 쿠폰, 배송비 쿠폰 처럼 주문 정보에 포함된 할인 금액
-    const clientDiscount = {
-      products: orderInfo.discount?.products ? orderInfo.discount.products : 0,
-      shippingFees: orderInfo.discount?.shippingFees ? orderInfo.discount.shippingFees : 0,
-    };
-
-    // 회원 등급별 할인율
-    const membershipClass = await userModel.findAttrById(orderInfo.user_id, 'extra.membershipClass');
-    const discountRate = codeutil.getCodeAttr(membershipClass?.extra.membershipClass, 'discountRate');
-
-    const discount = {
-      products: clientDiscount.products + (cost.products - clientDiscount.products) * (discountRate/100),
-      shippingFees: clientDiscount.shippingFees
-    };
-
-    orderInfo.cost = {
-      ...cost,
-      discount
-    };
-
-    orderInfo.cost.total = cost.products - discount.products;
-
-    // 무료 배송 확인
-    if(global.config.freeShippingFees?.value && (orderInfo.cost.total >= global.config.freeShippingFees.value)){
-      discount.shippingFees = cost.shippingFees;
-    }
-
-    orderInfo.cost.total += cost.shippingFees - discount.shippingFees;
-    
-    logger.log(orderInfo);
+    const cost = await priceUtil.getCost(orderInfo.user_id, orderInfo.products, orderInfo.discount);
+    delete orderInfo.discount;
+    orderInfo = { ...orderInfo, cost };
 
     if(!orderInfo.dryRun){
       await db.order.insertOne(orderInfo);
+    }
+    
+    // 장바구니 상품 구매시 구매한 상품은 장바구니 목록에서 제거
+    if(orderInfo.type == 'cart'){
+      const cartList = await cartModel.findByUser(orderInfo.user_id);
+      const deleteIdList = _.chain(cartList)
+        .filter(cart => _.find(orderInfo.products, { '_id': cart.product_id }))
+        .map('_id')
+        .value();
+      if(!orderInfo.dryRun){
+        await cartModel.deleteMany(deleteIdList);
+      }
     }
     return orderInfo;
   },
@@ -105,6 +81,7 @@ const buying = {
         const reply = await replyModel.findById(product.reply_id);
         if(reply){
           delete reply._id;
+          delete reply.user_id;
           delete reply.order_id;
           delete reply.product_id;
           product.reply = reply;
@@ -145,16 +122,29 @@ const buying = {
   },
 
   // 주문 상태 수정
-  async update(_id, order, history){
+  async updateState(_id, order, history){
     logger.trace(arguments);
 
     order.updatedAt = moment().format('YYYY.MM.DD HH:mm:ss');
 
-    const result = await db.order.updateOne({ _id }, { $set: order, $push: { history } });
+    const set = { 'products.$[elem].state': order.state };
+    if(order.delivery){
+      set['products.$[elem].delivery'] = order.delivery;
+    }
+
+    logger.log(set);
+
+    const result = await db.order.updateOne(
+      { _id }, 
+      { $set: set, $push: { 'products.$[elem].history': history } }, 
+      { arrayFilters: [{ 'elem._id': order.product_id }] }
+    );
+
     logger.debug(result);
     const item = { _id, ...order };
     return item;
   }
+
 };
 
 export default buying;

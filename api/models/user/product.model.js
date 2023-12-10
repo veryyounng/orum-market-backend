@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import moment from 'moment';
 import logger from '#utils/logger.js';
-import db, { nextSeq } from '#utils/dbutil.js';
+import db, { nextSeq } from '#utils/dbUtil.js';
 import replyModel from '#models/user/reply.model.js';
 import bookmarkModel from '#models/user/bookmark.model.js';
 
@@ -19,7 +19,7 @@ const product = {
   },
 
   // 상품 검색
-  async findBy({ sellerId, search, sortBy }){
+  async findBy({ sellerId, search={}, sortBy={} }){
     logger.trace(arguments);
     const query = { active: true, ...search };
     if(sellerId){
@@ -48,8 +48,9 @@ const product = {
     }
     const item = await db.product.findOne(query);
     if(item){
-      item.replies = await replyModel.findByProductId(_id);
+      item.replies = await replyModel.findBy({ product_id: _id });
       item.bookmarks = await bookmarkModel.findByProduct(_id);
+      item.options = await this.findBy({ search: { 'extra.parent': item._id } });
     }
     logger.debug(item);
     return item;

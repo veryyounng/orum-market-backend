@@ -3,11 +3,12 @@ import moment from 'moment';
 import createError from 'http-errors';
 
 import logger from '#utils/logger.js';
-import db, { nextSeq } from '#utils/dbutil.js';
+import db, { nextSeq } from '#utils/dbUtil.js';
 import productModel from '#models/user/product.model.js';
 import replyModel from '#models/user/reply.model.js';
 import userModel from '#models/user/user.model.js';
-import codeutil from '#utils/codeutil.js';
+import codeUtil from '#utils/codeUtil.js';
+import priceUtil from '#utils/priceUtil.js';
 
 const cart = {
   // 장바구니 등록
@@ -39,12 +40,12 @@ const cart = {
   },
 
   // 회원의 장바구니 목록 조회
-  async findByUser(user_id){
+  async findByUser(user_id, discount){
     logger.trace(arguments);
     // const list = await db.cart.find({ user_id }).sort({ createdAt: -1 }).toArray();
 
     const list = await db.cart.aggregate([
-      { $match: {user_id } },
+      { $match: { user_id } },
       {
         $lookup: {
           from: 'product',
@@ -65,13 +66,19 @@ const cart = {
           quantity: 1,
           createdAt: 1,
           updatedAt: 1,
+          'product._id': '$product._id',
           'product.name': '$product.name',
           'product.price': '$product.price',
+          'product.seller_id': '$product.seller_id',
+          'product.quantity': '$product.quantity',
+          'product.buyQuantity': '$product.buyQuantity',
           'product.image': { $arrayElemAt: ['$product.mainImages', 0] }
         }
       }
     ]).sort({ _id: -1 }).toArray();
 
+
+    list.cost = await priceUtil.getCost(user_id, _.map(list, cart => ({ _id: cart.product._id, quantity: cart.quantity })), discount);
 
     logger.debug(list);
     return list;
@@ -96,11 +103,20 @@ const cart = {
     return item;
   },
 
-  // 장바구니 상품 삭제
-  async delete(user_id){
+  // 장바구니 상품 한건 삭제
+  async delete(_id){
     logger.trace(arguments);
 
-    const result = await db.cart.deleteOne({ user_id });
+    const result = await db.cart.deleteOne({ _id });
+    logger.debug(result);
+    return result;
+  },
+
+  // 장바구니 상품 여러건 삭제
+  async deleteMany(cartIdList){
+    logger.trace(arguments);
+
+    const result = await db.cart.deleteMany({ _id: { $in: cartIdList } });
     logger.debug(result);
     return result;
   },
