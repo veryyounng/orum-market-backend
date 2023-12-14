@@ -25,41 +25,41 @@ main()
   .finally(() => getClient().close());
 
 async function initDB() {
-  // 시퀀스 등록
-  await registSeq();
-  console.info('1. 시퀀스 등록 완료.');
-
   // 회원 등록
   await registUser();
-  console.info('2. 회원 등록 완료.');
+  console.info('1. 회원 등록 완료.');
 
   // 상품 등록
   await registProduct();
-  console.info('3. 상품 등록 완료.');
+  console.info('2. 상품 등록 완료.');
 
   // 장바구니 등록
   await registCart();
-  console.info('4. 장바구니 등록 완료.');
+  console.info('3. 장바구니 등록 완료.');
 
   // 구매 등록
   await registOrder();
-  console.info('5. 구매 등록 완료.');
+  console.info('4. 구매 등록 완료.');
 
   // 후기 등록
   await registReply();
-  console.info('6. 후기 등록 완료.');
+  console.info('5. 후기 등록 완료.');
 
   // 코드 등록
   await registCode();
-  console.info('7. 코드 등록 완료.');
+  console.info('6. 코드 등록 완료.');
 
   // 북마크 등록
   await registBookmark();
-  console.info('8. 북마크 등록 완료.');
+  console.info('7. 북마크 등록 완료.');
 
   // config
   await registConfig();
-  console.info('9. config 등록 완료.');
+  console.info('8. config 등록 완료.');
+
+  // 게시물 등록
+  await registPost();
+  console.info('9. 게시물 등록 완료.');
 
   // 상품 조회
   await productList();
@@ -73,13 +73,6 @@ function getTime(day = 0, second = 0) {
     .add(day, 'days')
     .add(second, 'seconds')
     .format('YYYY.MM.DD HH:mm:ss');
-}
-
-// 시퀀스 등록
-async function registSeq() {
-  const seqList = ['user', 'product', 'cart', 'order', 'reply', 'bookmark'];
-  const data = seqList.map((_id) => ({ _id, no: 1 }));
-  await db.seq.insertMany(data);
 }
 
 // 회원 등록
@@ -171,7 +164,7 @@ async function registUser() {
       _id: await nextSeq('user'),
       email: 'u1@market.com',
       password: '$2b$10$S.8GNMDyvUF0xzujPtHBu.j5gtS19.OhRmYbpJBnCHg2S83WLx1T2',
-      name: '제이지',
+      name: '데이지',
       phone: '01044445555',
       address: '서울시 강남구 논현동 222',
       type: 'user',
@@ -360,11 +353,12 @@ async function registOrder() {
     {
       _id: await nextSeq('order'),
       user_id: 4,
+      state: 'OS020',
       products: [
         {
           _id: 2,
           seller_id: 2,
-          state: 'OS010',
+          state: 'OS020',
           name: '헬로카봇 스톰다이버',
           image: `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-diver.jpg`,
           quantity: 2,
@@ -391,6 +385,7 @@ async function registOrder() {
     {
       _id: await nextSeq('order'),
       user_id: 4,
+      state: 'OS010',
       products: [
         {
           _id: 3,
@@ -431,11 +426,12 @@ async function registOrder() {
     {
       _id: await nextSeq('order'),
       user_id: 4,
+      state: 'OS040',
       products: [
         {
           _id: 4,
           seller_id: 3,
-          state: 'OS310',
+          state: 'OS110',
           name: '레고 테크닉 42151 부가티 볼리드',
           image: `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}/uploads/sample-bugatti.png`,
           quantity: 1,
@@ -456,12 +452,45 @@ async function registOrder() {
         name: '학교',
         value: '서울시 강남구 역삼동 234',
       },
+      payment: {
+        success: true,
+        imp_uid: 'imp_138601212227',
+        pay_method: 'card',
+        merchant_uid: 'mid_1702540599641',
+        name: '레고 테크닉 42151 부가티 볼리드',
+        paid_amount: 45000,
+        currency: 'KRW',
+        pg_provider: 'html5_inicis',
+        pg_type: 'payment',
+        pg_tid: 'StdpayCARDINIpayTest20231214165706277441',
+        apply_num: '30123157',
+        buyer_name: '데이지',
+        buyer_email: 'aceppin@daum.net',
+        buyer_tel: '01044445555',
+        buyer_addr: '',
+        buyer_postcode: '',
+        custom_data: null,
+        status: 'paid',
+        paid_at: 1702540626,
+        receipt_url:
+          'https://iniweb.inicis.com/DefaultWebApp/mall/cr/cm/mCmReceipt_head.jsp?noTid=StdpayCARDINIpayTest20231214165706277441&noMethod=1',
+        card_name: '국민KB카드',
+        bank_name: null,
+        card_quota: 0,
+        card_number: '457973*********5',
+      },
+      delivery: {
+        company: '한진 택배',
+        trackingNumber: '364495958003',
+        url: 'https://trace.cjlogistics.com/next/tracking.html?wblNo=364495958003',
+      },
       createdAt: getTime(-3, -60 * 60 * 18),
       updatedAt: getTime(-1, -60 * 60 * 1),
     },
     {
       _id: await nextSeq('order'),
       user_id: 2,
+      state: 'OS040',
       products: [
         {
           _id: 2,
@@ -472,11 +501,6 @@ async function registOrder() {
           quantity: 1,
           price: 17260,
           reply_id: 2,
-          delivery: {
-            company: '한진 택배',
-            trackingNumber: '364495958003',
-            url: 'https://trace.cjlogistics.com/next/tracking.html?wblNo=364495958003',
-          },
         },
       ],
       cost: {
@@ -491,6 +515,11 @@ async function registOrder() {
       address: {
         name: '학교',
         value: '서울시 강남구 역삼동 234',
+      },
+      delivery: {
+        company: '한진 택배',
+        trackingNumber: '364495958003',
+        url: 'https://trace.cjlogistics.com/next/tracking.html?wblNo=364495958003',
       },
       createdAt: getTime(-3, -60 * 60 * 18),
       updatedAt: getTime(-1, -60 * 60 * 1),
@@ -806,6 +835,112 @@ async function registConfig() {
     },
   ];
   await db.config.insertMany(data);
+}
+
+// 게시물 등록
+async function registPost() {
+  var data = [
+    {
+      _id: await nextSeq('post'),
+      type: 'qna',
+      product_id: 1,
+      seller_id: 2,
+      user: {
+        _id: 4,
+        name: '데이지',
+      },
+      title: '크기가 얼만만한가요?',
+      content: '아이가 6살인데 가지고 놀기 적당한 크기인가요?',
+      replies: [
+        {
+          _id: 1,
+          user: {
+            _id: 2,
+            name: '네오',
+          },
+          content: '크기는 상품 상세정보에 나와 있습니다.',
+          createdAt: getTime(-2, -60 * 60 * 20),
+          updatedAt: getTime(-2, -60 * 60 * 2),
+        },
+        {
+          _id: 2,
+          user: {
+            _id: 4,
+            name: '데이지',
+          },
+          content: '어디있나 모르겠어요.',
+          createdAt: getTime(-2, -60 * 60 * 10),
+          updatedAt: getTime(-2, -60 * 60 * 1),
+        },
+        {
+          _id: 3,
+          user: {
+            _id: 2,
+            name: '네오',
+          },
+          content: '높이 60cm 입니다.',
+          createdAt: getTime(-2, -60 * 60 * 9),
+          updatedAt: getTime(-1, -60 * 60 * 20),
+        },
+      ],
+      createdAt: getTime(-3, -60 * 60 * 2),
+      updatedAt: getTime(-3, -60 * 60 * 2),
+    },
+    {
+      _id: await nextSeq('post'),
+      type: 'qna',
+      product_id: 1,
+      seller_id: 2,
+      user: {
+        _id: 4,
+        name: '데이지',
+      },
+      title: '이번주 토요일까지 받아볼 수 있을까요?',
+      content: '토요일 생일 선물로 준비중인데 그때까지 배송 가능할까요?',
+      createdAt: getTime(-2, -60 * 60 * 1),
+      updatedAt: getTime(-1, -60 * 60 * 20),
+    },
+    {
+      _id: await nextSeq('post'),
+      type: 'qna',
+      product_id: 4,
+      seller_id: 3,
+      user: {
+        _id: 2,
+        name: '네오',
+      },
+      title: '배송 빨리 보내주세요.',
+      content: '양품으로 보내주세요.',
+      createdAt: getTime(-1, -60 * 60 * 14),
+      updatedAt: getTime(-1, -60 * 60 * 2),
+    },
+    {
+      _id: await nextSeq('post'),
+      type: 'notice',
+      user: {
+        _id: 1,
+        name: '무지',
+      },
+      title: '배송지연 안내',
+      content: '크리스마스 물류 증가로 인해 평소보다 2~3일 지연될 예정입니다.',
+      createdAt: getTime(-4, -60 * 60 * 2),
+      updatedAt: getTime(-2, -60 * 60 * 13),
+    },
+    {
+      _id: await nextSeq('post'),
+      type: 'notice',
+      user: {
+        _id: 1,
+        name: '무지',
+      },
+      title: '배송비 인상 안내',
+      content:
+        '택배사 배송비 인상으로 인해 기존 3,000원에서 3,500원으로 인상됩니다.',
+      createdAt: getTime(-6, -60 * 60 * 20),
+      updatedAt: getTime(-4, -60 * 60 * 13),
+    },
+  ];
+  await db.post.insertMany(data);
 }
 
 // 모든 상품명을 출력한다.

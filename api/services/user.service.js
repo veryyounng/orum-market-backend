@@ -30,7 +30,7 @@ const userService = {
     if(user){
       const isSame = await bcrypt.compare(password, user.password);
       if(isSame){
-        const token = await authService.sign({ _id: user._id, type: user.type });
+        const token = await authService.sign({ _id: user._id, type: user.type, name: user.name });
         logger.log('token', token);
         await userModel.updateRefreshToken(user._id, token.refreshToken);
         user.token = token;
@@ -45,17 +45,18 @@ const userService = {
 
   // 회원정보 수정
   async update(id, updateInfo){
-    try{
-      if(updateInfo.password){
-        const salt = await bcrypt.genSalt();
-        const hashedPassword = await bcrypt.hash(updateInfo.password, salt);
-        updateInfo.password = hashedPassword;
-      }
-      const count = await userModel.update(id, updateInfo);
-      return count;
-    }catch(err){
-      throw new Error('회원정보 수정에 실패했습니다.', {cause: err});
-    }    
+    let password = updateInfo.password;
+    if(updateInfo.password){
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(updateInfo.password, salt);
+      updateInfo.password = hashedPassword;
+    }
+    const updated = await userModel.update(id, updateInfo);
+    if(updated && password){
+      // 암호화 이전의 비밀번호
+      updated.password = password;
+    }
+    return updated;
   }
 };
 
