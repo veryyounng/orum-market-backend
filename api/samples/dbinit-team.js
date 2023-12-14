@@ -259,10 +259,15 @@ async function registProduct() {
     for (let i = 1; i <= 10; i++) {
       let selectedImages = [];
       while (selectedImages.length < 3) {
-        let randomImage =
-          imageUrls[Math.floor(Math.random() * imageUrls.length)];
-        if (!selectedImages.includes(randomImage)) {
-          selectedImages.push(randomImage);
+        let randomImageIndex = Math.floor(Math.random() * imageUrls.length);
+        let randomImageUrl = imageUrls[randomImageIndex];
+
+        // Check if the image URL is already selected
+        if (!selectedImages.some((image) => image.path === randomImageUrl)) {
+          selectedImages.push({
+            id: `img${randomImageIndex}`, // Unique ID for each image
+            path: randomImageUrl, // Image URL
+          });
         }
       }
 
