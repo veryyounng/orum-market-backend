@@ -20,13 +20,7 @@ app.use('/apidocs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || config.cors.origin.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: config.cors.origin,
     credentials: true,
   }),
 );
