@@ -1,25 +1,42 @@
 import express from 'express';
 import { query } from 'express-validator';
-import jwtAuth from '#middlewares/jwtAuth.js';
+import _ from 'lodash';
+
 import logger from '#utils/logger.js';
+import jwtAuth from '#middlewares/jwtAuth.js';
 import validator from '#middlewares/validator.js';
 import model from '#models/user/post.model.js';
-import _ from 'lodash';
 
 const router = express.Router();
 
 // 게시물 목록 조회
-router.get('/', async function(req, res, next) {
+router.get('/', [
+  query('custom').optional().isJSON().withMessage('custom 값은 JSON 형식의 문자열이어야 합니다.'),
+  query('sort').optional().isJSON().withMessage('sort 값은 JSON 형식의 문자열이어야 합니다.')
+], validator.checkResult, async function(req, res, next) {
   try{
-    const search = {};
+    let search = {};
     const keyword = req.query.keyword;
+    const custom = req.query.custom;
 
     if(keyword){
       const regex = new RegExp(keyword, 'i');
       search['$or'] = [{ title: regex }, { content: regex }];
     }
 
-    const item = await model.find({ type: req.query.type, search });
+    if(custom){
+      search = { ...search, ...JSON.parse(custom) };
+    }
+
+    // 정렬 옵션
+    let sortBy = JSON.parse(req.query.sort || '{}');
+    // 기본 정렬 옵션은 등록일의 내림차순
+    sortBy['createdAt'] = sortBy['createdAt'] || -1; // 내림차순
+
+    const page = Number(req.query.page || 1);
+    const limit = Number(req.query.limit || 0);
+
+    const item = await model.find({ type: req.query.type, search, sortBy, page, limit });
     
     res.json({ ok: 1, item });
   }catch(err){
