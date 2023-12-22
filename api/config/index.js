@@ -46,8 +46,9 @@ export const cors = {
     /^https?:\/\/127.0.0.1/,
     /netlify.app$/,
     /vercel.app$/,
-    /orum.pro$/,
-    new RegExp(process.env.APP_HOST)
+
+    new RegExp(process.env.APP_HOST),
+    /^https?:\/\/(www\.)?orum\.pro$/,
   ]
 };
 
