@@ -45,7 +45,6 @@ export const cors = {
     /^https?:\/\/localhost/,
     /^https?:\/\/127.0.0.1/,
      /^http:\/\/orum\.pro/,
-     /^https?:\/\/orum\.pro/,
     /netlify.app$/,
     /vercel.app$/,
 
