@@ -5,6 +5,7 @@ import logger from '../utils/logger.js';
 import { jwt as JWTConfig } from '../config/index.js';
 import userModel from '../models/user/user.model.js';
 
+
 const authService = {
   // JWT 토큰 생성
   async sign(payload) {
@@ -59,7 +60,7 @@ const authService = {
     this.verifyToken(refreshToken, 'refresh');
     const user = await userModel.findBy({ refreshToken });
     if(user){
-      const token = await this.sign({ _id: user._id, type: user.type, name: user.name });
+      const token = await this.sign({ _id: user._id, type: user.type });
       logger.log('token', token);
       return token.accessToken;
     }else{

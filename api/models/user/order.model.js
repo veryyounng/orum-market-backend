@@ -4,10 +4,12 @@ import createError from 'http-errors';
 
 import logger from '#utils/logger.js';
 import db, { nextSeq } from '#utils/dbUtil.js';
-import priceUtil from '#utils/priceUtil.js';
 import productModel from '#models/user/product.model.js';
 import replyModel from '#models/user/reply.model.js';
+import userModel from '#models/user/user.model.js';
 import cartModel from '#models/user/cart.model.js';
+import codeUtil from '#utils/codeUtil.js';
+import priceUtil from '#utils/priceUtil.js';
 
 const buying = {
   // 주문 등록
@@ -32,8 +34,7 @@ const buying = {
             seller_id: product.seller_id,
             name: product.name,
             image: product.mainImages[0],
-            price: product.price * quantity,
-            extra: product.extra
+            price: product.price * quantity
           });
         }else{
           throw createError(422, `[${product._id} ${product.name}] 상품의 구매 가능한 수량은 ${product.quantity-product.buyQuantity}개 입니다.`);
@@ -44,7 +45,7 @@ const buying = {
     }
 
     orderInfo.products = products;
-    const cost = await priceUtil.getCost({ products: orderInfo.products, clientDiscount: orderInfo.discount, user_id: orderInfo.user_id });
+    const cost = await priceUtil.getCost(orderInfo.user_id, orderInfo.products, orderInfo.discount);
     delete orderInfo.discount;
     orderInfo = { ...orderInfo, cost };
 
@@ -67,15 +68,13 @@ const buying = {
   },
 
   // 주문 목록 검색
-  async findBy({ user_id, search, sortBy, page=1, limit=0 }){
+  async findBy({ user_id, search, sortBy }){
     logger.trace(arguments);
     const query = { user_id, ...search };
     logger.log(query);
 
-    const skip = (page-1) * limit;
 
-    const totalCount = await db.product.countDocuments(query);
-    const list = await db.order.find(query).skip(skip).limit(limit).sort(sortBy).toArray();
+    const list = await db.order.find(query).sort(sortBy).toArray();
 
     for(const order of list){
       for(const product of order.products){
@@ -90,28 +89,14 @@ const buying = {
       }
     }
 
-    const result = { item: list };
-
-    result.pagination = {
-      page,
-      limit,
-      total: totalCount,
-      totalPages: (limit === 0) ? 1 : Math.ceil(totalCount / limit)
-    };
-
-    logger.debug(list.length);
-    return result;
+    logger.debug(list.length, list);
+    return list;
   },
 
-
   // 주문 내역 상세 조회
-  async findById(_id, user_id){
+  async findById(_id){
     logger.trace(arguments);
-    const query = { _id };
-    if(user_id){
-      query['user_id'] = user_id;
-    }
-    const item = await db.order.findOne(query);
+    const item = await db.order.findOne({ _id });
     logger.debug(item);
     return item;
   },
@@ -136,31 +121,8 @@ const buying = {
     return result;
   },
 
-  // 주문별 주문 상태 수정
+  // 주문 상태 수정
   async updateState(_id, order, history){
-    logger.trace(arguments);
-
-    order.updatedAt = moment().format('YYYY.MM.DD HH:mm:ss');
-
-    const set = { state: order.state };
-    if(order.delivery){
-      set['delivery'] = order.delivery;
-    }
-
-    logger.log(set);
-
-    const result = await db.order.updateOne(
-      { _id }, 
-      { $set: set, $push: { history } }
-    );
-
-    logger.debug(result);
-    const item = { _id, ...order };
-    return item;
-  },
-
-  // 상품별 주문 상태 수정
-  async updateStateByProduct(_id, product_id, order, history){
     logger.trace(arguments);
 
     order.updatedAt = moment().format('YYYY.MM.DD HH:mm:ss');
@@ -175,7 +137,7 @@ const buying = {
     const result = await db.order.updateOne(
       { _id }, 
       { $set: set, $push: { 'products.$[elem].history': history } }, 
-      { arrayFilters: [{ 'elem._id': product_id }] }
+      { arrayFilters: [{ 'elem._id': order.product_id }] }
     );
 
     logger.debug(result);

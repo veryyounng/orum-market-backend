@@ -2,8 +2,9 @@ import express from 'express';
 import _ from 'lodash';
 
 import logger from '#utils/logger.js';
-import codeUtil from '#utils/codeUtil.js';
 import model from '#models/code/code.model.js';
+import codeUtil from '#utils/codeUtil.js';
+import querystring from 'querystring';
 
 const router = express.Router();
 
@@ -35,10 +36,14 @@ router.get('/', async function(req, res, next) {
   */
 
   try{
-    const item = {
-      nested: codeUtil.getCodeObj(),
-      flatten: codeUtil.getCodeFlatten()
-    };
+    // let item = await model.find();
+    // logger.debug('code', item);
+    // if(item.length > 0){
+      const item = {
+        nested: codeUtil.getCodeObj(),
+        flatten: codeUtil.getCodeFlatten()
+      };
+    // }
     res.json({ ok: 1, item });
   }catch(err){
     next(err);

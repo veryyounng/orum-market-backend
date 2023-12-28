@@ -51,6 +51,9 @@ const server = io => {
     // 클라이언트 접속 종료시
     socket.on('disconnect', function(){
       leaveRoom(socket);
+      // io.roomList?.get(socket.roomId)?.memberList?.delete(socket.id);
+      // sendMsg(socket, '시스템', `${socket.nickName}님이 퇴장했습니다.`);
+      // socket.nsp.to(socket.roomId).emit('setMembers', getMembers(socket.roomId));
     });
 
     // 채팅방 정보 반환
@@ -67,6 +70,8 @@ const server = io => {
       const roomId = shortid.generate();
       io.roomList = io.roomList || new Map();
       io.roomList.set(roomId, { user_id, hostName, roomName, memberList: new Map() });
+
+      // joinRoom(socket, { roomId, user_id, nickName: hostName });
 
       socket.nsp.emit('setRooms', getRooms());
     });

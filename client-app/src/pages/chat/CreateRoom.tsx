@@ -1,5 +1,5 @@
 import { RoomsData, socket, type MsgItem } from '../../utils/websocket';
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRecoilValue } from "recoil";
 import { userState } from '../../recoil/user/atoms';
 import { Link } from 'react-router-dom';

@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import moment from 'moment';
 import createError from 'http-errors';
 
 import logger from '#utils/logger.js';
@@ -22,15 +23,24 @@ const code = {
         throw err;
       }
     }
+    
+   
   },
 
   // 코드 목록 조회
   async find(){
     logger.trace(arguments);
+
     const sortBy = {
       sort: 1
     };
+
     const list = await db.code.find().sort(sortBy).toArray();
+
+    for(const code of list){
+      
+    }
+
     logger.debug(list.length, list);
     return list;
   },

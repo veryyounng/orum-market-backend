@@ -1,11 +1,5 @@
 import { Link } from "react-router-dom";
 
-
-interface MainImageType {
-  url: string;
-  fileName: string;
-  orgName: string;
-}
 export interface ProductItemType {
   _id: number;
   price: number;
@@ -15,7 +9,7 @@ export interface ProductItemType {
   name: string;
   quantity: number;
   buyQuantity: number;
-  mainImages: MainImageType[];
+  mainImages: string[];
   content: string;
   createdAt?: string;
   updatedAt?: string;

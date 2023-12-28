@@ -3,7 +3,8 @@ import { useMutation } from "@tanstack/react-query";
 import { userState } from '../../recoil/user/atoms';
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import useCustomAxios from '../../hooks/useCustomAxios';
-import { codeState } from "../../recoil/code/atoms";
+import { useNavigate } from "react-router";
+import { CodeListType, codeState } from "../../recoil/code/atoms";
 
 interface LoginRes {
   data: {
@@ -41,6 +42,7 @@ interface ErrorRes {
 }
 
 const Login = function(){
+  const navigate = useNavigate();
   const code = useRecoilValue(codeState)!;
   const setUser = useSetRecoilState(userState);
   const [values, setValues] = useState({
@@ -65,9 +67,6 @@ const Login = function(){
         setUser({
           _id: userInfo._id,
           name: userInfo.name,
-          phone: userInfo.phone,
-          email: userInfo.email,
-          address: userInfo.address,
           type: userInfo.type,
           membershipClass: code.flatten[userInfo.extra.membershipClass].value,
         });

@@ -15,7 +15,7 @@ npm i
 npm run start
 
 // 초기 db 파일 적용
-npm run dbinit-team
+npm run dbinit
 ```
 
 > (중요!)

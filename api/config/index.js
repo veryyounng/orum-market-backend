@@ -10,7 +10,6 @@ if (process.env.NODE_ENV) {
 }
 
 export const db = {
-  protocol: process.env.DB_PROTOCOL,
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
   database: process.env.DB_DATABASE,
@@ -39,15 +38,3 @@ export const jwt = {
     },
   }
 };
-
-export const cors = {
-  origin: [
-    /^https?:\/\/localhost/,
-    /^https?:\/\/127.0.0.1/,
-    /netlify.app$/,
-    /vercel.app$/,
-    new RegExp(process.env.APP_HOST)
-  ]
-};
-
-export default {db, jwt, cors};

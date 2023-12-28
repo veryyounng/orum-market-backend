@@ -1,18 +1,18 @@
-import ProductEntry, { ProductItemType } from "../../components/product/ProductListTypeEntry";
+import ProductEntry, { ProductItem } from "../../components/product/ProductListTypeEntry";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-axios.defaults.baseURL = import.meta.env.VITE_API_SERVER;
+axios.defaults.baseURL = 'https://localhost/api';
 
 interface ProductRes {
   ok: 0 | 1,
   item: [
-    ProductItemType
+    ProductItem
   ]
 }
 
 const ProductList = function(){
-  const [list, setList] = useState<ProductItemType[]>([]);
+  const [list, setList] = useState<ProductItem[]>([]);
 
   useEffect(() => {
     console.log('Home 마운트');
@@ -21,7 +21,7 @@ const ProductList = function(){
 
   useEffect(() => {
     async function fetchData() {
-      const res = await axios.get<ProductRes>(`/products?custom={"extra.today": true}`);
+      const res = await axios.get<ProductRes>(`/products?extra={"extra.today": true}`);
       console.log(res);
       setList(res.data.item);
     }
